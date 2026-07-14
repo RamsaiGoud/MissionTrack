@@ -1,6 +1,9 @@
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
-import StatCard from "../components/StatCard";
+import EventsCard from "../components/dashboard/EventsCard";
+import Sidebar from "../components/layout/Sidebar";
+import Navbar from "../components/layout/Navbar";
+import StatCard from "../components/dashboard/StatCard";
+import MissionHero from "../components/dashboard/MissionHero";
+import FocusCard from "../components/dashboard/FocusCard";
 
 import {
   FaFire,
@@ -17,7 +20,14 @@ export default function Dashboard() {
       <main className="flex-1 p-8">
 
         <Navbar />
+        <div className="mt-8">
+  <MissionHero />
+</div>
+<div className="mt-8 grid grid-cols-2 gap-6">
 
+  <FocusCard />
+
+  <EventsCard />
         {/* Top Cards */}
 
         <div className="grid grid-cols-3 gap-6">
