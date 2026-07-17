@@ -7,6 +7,7 @@ import GoalList from "../components/dashboard/GoalList";
 import EventsCard from "../components/dashboard/EventsCard";
 import CalendarCard from "../components/dashboard/CalendarCard";
 import QuoteCard from "../components/dashboard/QuoteCard";
+import TodaysMission from "../components/dashboard/TodaysMission";
 
 import FloatingActionButton from "../components/ui/FloatingActionButton";
 
@@ -24,6 +25,10 @@ export default function Dashboard() {
 
         <div className="mt-8">
           <QuickStats />
+        </div>
+          <div className="mt-8">
+  <TodaysMission />
+
         </div>
 
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">

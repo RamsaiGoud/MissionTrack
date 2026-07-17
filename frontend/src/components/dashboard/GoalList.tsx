@@ -1,11 +1,58 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddGoalForm from "./AddGoalForm";
-import { goals as initialGoals } from "../../data/goals";
 import { FaTrash, FaPlus } from "react-icons/fa";
+import api from "../../services/api";
+
+interface Goal {
+  id: number;
+  title: string;
+  priority: "High" | "Medium" | "Low";
+  dueDate: string;
+  completed: boolean;
+}
 
 export default function GoalList() {
   const [showForm, setShowForm] = useState(false);
-  const [goals, setGoals] = useState(initialGoals);
+  const [goals, setGoals] = useState<Goal[]>([]);
+
+  useEffect(() => {
+    fetchGoals();
+  }, []);
+
+  async function fetchGoals() {
+    try {
+      const response = await api.get("/goals/");
+
+      const formattedGoals = response.data.map((goal: any) => ({
+        ...goal,
+        dueDate: goal.due_date,
+      }));
+
+      setGoals(formattedGoals);
+    } catch (error) {
+      console.error("Error fetching goals:", error);
+    }
+  }
+
+  async function addGoal(goal: {
+    title: string;
+    priority: "High" | "Medium" | "Low";
+    dueDate: string;
+  }) {
+    try {
+      await api.post("/goals/", {
+        title: goal.title,
+        priority: goal.priority,
+        due_date: goal.dueDate,
+        completed: false,
+      });
+
+      fetchGoals();
+      setShowForm(false);
+    } catch (error) {
+      console.error("Error adding goal:", error);
+    }
+  }
 
   function toggleGoal(id: number) {
     setGoals(
@@ -23,23 +70,6 @@ export default function GoalList() {
     );
   }
 
-  function addGoal(goal: {
-    title: string;
-    priority: "High" | "Medium" | "Low";
-    dueDate: string;
-  }) {
-    const newGoal = {
-      id: Date.now(),
-      title: goal.title,
-      completed: false,
-      priority: goal.priority,
-      dueDate: goal.dueDate,
-    };
-
-    setGoals((prevGoals) => [...prevGoals, newGoal]);
-    setShowForm(false);
-  }
-
   return (
     <div className="rounded-3xl bg-white p-6 shadow-md">
       <h2 className="mb-6 text-2xl font-bold">
@@ -52,7 +82,6 @@ export default function GoalList() {
           className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
         >
           <FaPlus />
-
           {showForm ? "Close Form" : "Add New Goal"}
         </button>
 
