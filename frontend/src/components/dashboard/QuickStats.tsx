@@ -1,46 +1,91 @@
 import {
-  FaFire,
   FaBullseye,
   FaCheckCircle,
   FaCalendarAlt,
+  FaTasks,
 } from "react-icons/fa";
+import { useCalendar } from "../../context/CalendarContext";
 
-const stats = [
-  {
-    title: "Current Streak",
-    value: "18",
-    subtitle: "Days Active 🔥",
-    color: "bg-orange-100",
-    text: "text-orange-600",
-    icon: <FaFire className="text-3xl" />,
-  },
-  {
-    title: "Mission Progress",
-    value: "74%",
-    subtitle: "You're doing great 🚀",
-    color: "bg-blue-100",
-    text: "text-blue-600",
-    icon: <FaBullseye className="text-3xl" />,
-  },
-  {
-    title: "Completed Goals",
-    value: "14/20",
-    subtitle: "6 Remaining",
-    color: "bg-green-100",
-    text: "text-green-600",
-    icon: <FaCheckCircle className="text-3xl" />,
-  },
-  {
-    title: "Today's Events",
-    value: "3",
-    subtitle: "Stay on Schedule",
-    color: "bg-purple-100",
-    text: "text-purple-600",
-    icon: <FaCalendarAlt className="text-3xl" />,
-  },
-];
+interface Goal {
+  id: number;
+  completed: boolean;
+}
 
-export default function QuickStats() {
+interface Event {
+  id: number;
+  date: string;
+}
+
+interface QuickStatsProps {
+  goals: Goal[];
+  events: Event[];
+}
+
+export default function QuickStats({
+  goals,
+  events,
+}: QuickStatsProps) {
+  const { selectedDate } = useCalendar();
+
+  const totalGoals = goals.length;
+
+  const completedGoals = goals.filter(
+    (goal) => goal.completed
+  ).length;
+
+  const pendingGoals = totalGoals - completedGoals;
+
+  const completionRate =
+    totalGoals === 0
+      ? 0
+      : Math.round((completedGoals / totalGoals) * 100);
+
+  const selectedEvents = events.filter(
+    (event) => event.date === selectedDate
+  ).length;
+
+  const stats = [
+    {
+      title: "Total Goals",
+      value: totalGoals,
+      subtitle: `${pendingGoals} Pending`,
+      color: "bg-orange-100",
+      text: "text-orange-600",
+      icon: <FaTasks className="text-3xl" />,
+      progress: totalGoals === 0 ? 0 : 100,
+    },
+    {
+      title: "Mission Progress",
+      value: `${completionRate}%`,
+      subtitle: "Completion Rate",
+      color: "bg-blue-100",
+      text: "text-blue-600",
+      icon: <FaBullseye className="text-3xl" />,
+      progress: completionRate,
+    },
+    {
+      title: "Completed Goals",
+      value: completedGoals,
+      subtitle: `Out of ${totalGoals}`,
+      color: "bg-green-100",
+      text: "text-green-600",
+      icon: <FaCheckCircle className="text-3xl" />,
+      progress: completionRate,
+    },
+    {
+      title: "Selected Date Events",
+      value: selectedEvents,
+      subtitle: selectedDate,
+      color: "bg-purple-100",
+      text: "text-purple-600",
+      icon: <FaCalendarAlt className="text-3xl" />,
+      progress:
+        selectedEvents === 0
+          ? 0
+          : Math.min((selectedEvents / 5) * 100, 100),
+    },
+  ];
+
   return (
     <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
       {stats.map((item) => (
@@ -72,15 +117,8 @@ export default function QuickStats() {
 
           <div className="mt-6 h-1 w-full rounded-full bg-gray-100">
             <div
-              className={`h-full rounded-full ${
-                item.title === "Current Streak"
-                  ? "w-4/5 bg-orange-500"
-                  : item.title === "Mission Progress"
-                  ? "w-3/4 bg-blue-600"
-                  : item.title === "Completed Goals"
-                  ? "w-2/3 bg-green-600"
-                  : "w-1/2 bg-purple-600"
-              }`}
+              className="h-full rounded-full bg-blue-600 transition-all duration-500"
+              style={{ width: `${item.progress}%` }}
             />
           </div>
         </div>

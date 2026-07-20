@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AddGoalForm from "./AddGoalForm";
-import { FaTrash, FaPlus } from "react-icons/fa";
+import { FaPlus, FaTrash } from "react-icons/fa";
 import api from "../../services/api";
 
 interface Goal {
@@ -11,28 +11,18 @@ interface Goal {
   completed: boolean;
 }
 
-export default function GoalList() {
+interface GoalListProps {
+  goals: Goal[];
+  refreshGoals: () => Promise<void>;
+  refreshData: () => Promise<void>;
+}
+
+export default function GoalList({
+  goals,
+  refreshGoals,
+  refreshData,
+}: GoalListProps) {
   const [showForm, setShowForm] = useState(false);
-  const [goals, setGoals] = useState<Goal[]>([]);
-
-  useEffect(() => {
-    fetchGoals();
-  }, []);
-
-  async function fetchGoals() {
-    try {
-      const response = await api.get("/goals/");
-
-      const formattedGoals = response.data.map((goal: any) => ({
-        ...goal,
-        dueDate: goal.due_date,
-      }));
-
-      setGoals(formattedGoals);
-    } catch (error) {
-      console.error("Error fetching goals:", error);
-    }
-  }
 
   async function addGoal(goal: {
     title: string;
@@ -44,105 +34,114 @@ export default function GoalList() {
         title: goal.title,
         priority: goal.priority,
         due_date: goal.dueDate,
-        completed: false,
       });
 
-      fetchGoals();
+      await refreshData();
       setShowForm(false);
     } catch (error) {
       console.error("Error adding goal:", error);
     }
   }
 
-  function toggleGoal(id: number) {
-    setGoals(
-      goals.map((goal) =>
-        goal.id === id
-          ? { ...goal, completed: !goal.completed }
-          : goal
-      )
-    );
+  async function deleteGoal(id: number) {
+    try {
+      await api.delete(`/goals/${id}`);
+      await refreshData();
+    } catch (error) {
+      console.error("Error deleting goal:", error);
+    }
   }
 
-  function deleteGoal(id: number) {
-    setGoals(
-      goals.filter((goal) => goal.id !== id)
-    );
+  async function toggleGoal(goal: Goal) {
+    try {
+      await api.put(`/goals/${goal.id}`, {
+        completed: !goal.completed,
+      });
+
+      await refreshData();
+    } catch (error) {
+      console.error("Error updating goal:", error);
+    }
   }
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-md">
-      <h2 className="mb-6 text-2xl font-bold">
-        My Goals
-      </h2>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Goals</h2>
 
-      <div className="mb-6">
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
         >
           <FaPlus />
-          {showForm ? "Close Form" : "Add New Goal"}
+          Add Goal
         </button>
-
-        {showForm && (
-          <div className="mt-4">
-            <AddGoalForm onAddGoal={addGoal} />
-          </div>
-        )}
       </div>
 
+      {showForm && (
+        <div className="rounded-xl border bg-gray-50 p-4">
+          <AddGoalForm onAddGoal={addGoal} />
+        </div>
+      )}
+
       <div className="space-y-4">
-        {goals.map((goal) => (
-          <div
-            key={goal.id}
-            className="flex items-center justify-between rounded-xl border border-gray-200 p-4"
-          >
-            <div>
-              <h3
-                className={
-                  goal.completed
-                    ? "font-semibold line-through text-gray-400"
-                    : "font-semibold"
-                }
-              >
-                {goal.title}
-              </h3>
+        {goals.length === 0 ? (
+          <div className="rounded-xl border bg-white p-8 text-center text-gray-500 shadow-sm">
+            No goals found.
+          </div>
+        ) : (
+          goals.map((goal) => (
+            <div
+              key={goal.id}
+              className="flex items-center justify-between rounded-xl border bg-white p-5 shadow-sm transition hover:shadow-md"
+            >
+              <div className="flex items-start gap-4">
+                <input
+                  type="checkbox"
+                  checked={goal.completed}
+                  onChange={() => toggleGoal(goal)}
+                  className="mt-1 h-5 w-5 cursor-pointer"
+                />
 
-              <p
-                className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-semibold ${
-                  goal.priority === "High"
-                    ? "bg-red-100 text-red-600"
-                    : goal.priority === "Medium"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "bg-green-100 text-green-700"
-                }`}
-              >
-                {goal.priority} Priority
-              </p>
+                <div>
+                  <h3
+                    className={`text-lg font-semibold ${
+                      goal.completed
+                        ? "line-through text-gray-400"
+                        : ""
+                    }`}
+                  >
+                    {goal.title}
+                  </h3>
 
-              <p className="mt-2 text-xs text-gray-500">
-                Due: {goal.dueDate}
-              </p>
-            </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Due: {goal.dueDate || "Not specified"}
+                  </p>
 
-            <div className="flex items-center gap-4">
-              <input
-                type="checkbox"
-                checked={goal.completed}
-                onChange={() => toggleGoal(goal.id)}
-                className="h-5 w-5 accent-blue-600"
-              />
+                  <span
+                    className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-semibold text-white ${
+                      goal.priority === "High"
+                        ? "bg-red-500"
+                        : goal.priority === "Medium"
+                        ? "bg-yellow-500"
+                        : "bg-green-500"
+                    }`}
+                  >
+                    {goal.priority}
+                  </span>
+                </div>
+              </div>
 
               <button
                 onClick={() => deleteGoal(goal.id)}
-                className="text-red-500 hover:text-red-700"
+                className="rounded-lg p-3 text-red-500 transition hover:bg-red-50 hover:text-red-700"
+                title="Delete Goal"
               >
-                <FaTrash />
+                <FaTrash size={18} />
               </button>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
