@@ -7,6 +7,10 @@ class GoalCreate(BaseModel):
     due_date: str
 
 
+class GoalUpdate(BaseModel):
+    completed: bool
+
+
 class GoalResponse(BaseModel):
     id: int
     title: str
