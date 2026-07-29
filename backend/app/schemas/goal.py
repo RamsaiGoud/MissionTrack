@@ -8,6 +8,9 @@ class GoalCreate(BaseModel):
 
 
 class GoalUpdate(BaseModel):
+    title: str
+    priority: str
+    due_date: str
     completed: bool
 
 

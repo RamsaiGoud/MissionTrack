@@ -39,13 +39,15 @@ def update_goal(goal_id: int, goal_update: GoalUpdate, db: Session = Depends(get
     if goal is None:
         raise HTTPException(status_code=404, detail="Goal not found")
 
+    goal.title = goal_update.title
+    goal.priority = goal_update.priority
+    goal.due_date = goal_update.due_date
     goal.completed = goal_update.completed
 
     db.commit()
     db.refresh(goal)
 
     return goal
-
 
 @router.delete("/{goal_id}")
 def delete_goal(goal_id: int, db: Session = Depends(get_db)):

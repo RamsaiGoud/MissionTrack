@@ -7,6 +7,12 @@ class EventCreate(BaseModel):
     time: str
 
 
+class EventUpdate(BaseModel):
+    title: str
+    date: str
+    time: str
+
+
 class EventResponse(BaseModel):
     id: int
     title: str
