@@ -1,6 +1,6 @@
 import { useState } from "react";
 import AddGoalForm from "./AddGoalForm";
-import { FaPlus, FaTrash } from "react-icons/fa";
+import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import api from "../../services/api";
 
 interface Goal {
@@ -23,6 +23,7 @@ export default function GoalList({
   refreshData,
 }: GoalListProps) {
   const [showForm, setShowForm] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 
   async function addGoal(goal: {
     title: string;
@@ -42,7 +43,22 @@ export default function GoalList({
       console.error("Error adding goal:", error);
     }
   }
+  async function updateGoal(goal: Goal) {
+  try {
+    await api.put(`/goals/${goal.id}`, {
+      title: goal.title,
+      priority: goal.priority,
+      due_date: goal.dueDate,
+      completed: goal.completed,
+    });
 
+    await refreshData();
+    setEditingGoal(null);
+    setShowForm(false);
+  } catch (error) {
+    console.error("Error updating goal:", error);
+  }
+}
   async function deleteGoal(id: number) {
     try {
       await api.delete(`/goals/${id}`);
@@ -52,17 +68,20 @@ export default function GoalList({
     }
   }
 
-  async function toggleGoal(goal: Goal) {
-    try {
-      await api.put(`/goals/${goal.id}`, {
-        completed: !goal.completed,
-      });
+ async function toggleGoal(goal: Goal) {
+  try {
+    await api.put(`/goals/${goal.id}`, {
+      title: goal.title,
+      priority: goal.priority,
+      due_date: goal.dueDate,
+      completed: !goal.completed,
+    });
 
-      await refreshData();
-    } catch (error) {
-      console.error("Error updating goal:", error);
-    }
+    await refreshData();
+  } catch (error) {
+    console.error("Error updating goal:", error);
   }
+}
 
   return (
     <div className="space-y-6">
@@ -70,20 +89,27 @@ export default function GoalList({
         <h2 className="text-2xl font-bold">Goals</h2>
 
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+  setEditingGoal(null);
+  setShowForm(true);
+}}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
         >
           <FaPlus />
           Add Goal
         </button>
-      </div>
-
-      {showForm && (
-        <div className="rounded-xl border bg-gray-50 p-4">
-          <AddGoalForm onAddGoal={addGoal} />
-        </div>
-      )}
-
+         </div>
+{showForm && editingGoal === null && (
+  <div className="rounded-xl border bg-gray-50 p-4">
+    <AddGoalForm
+      editingGoal={null}
+      onAddGoal={addGoal}
+      onUpdateGoal={updateGoal}
+      onCancel={() => setShowForm(false)}
+    />
+  </div>
+)}
+     
       <div className="space-y-4">
         {goals.length === 0 ? (
           <div className="rounded-xl border bg-white p-8 text-center text-gray-500 shadow-sm">
@@ -91,10 +117,10 @@ export default function GoalList({
           </div>
         ) : (
           goals.map((goal) => (
-            <div
-              key={goal.id}
-              className="flex items-center justify-between rounded-xl border bg-white p-5 shadow-sm transition hover:shadow-md"
-            >
+  <div key={goal.id}>
+    <div
+      className="flex items-center justify-between rounded-xl border bg-white p-5 shadow-sm transition hover:shadow-md"
+    >
               <div className="flex items-start gap-4">
                 <input
                   type="checkbox"
@@ -132,15 +158,41 @@ export default function GoalList({
                 </div>
               </div>
 
-              <button
-                onClick={() => deleteGoal(goal.id)}
-                className="rounded-lg p-3 text-red-500 transition hover:bg-red-50 hover:text-red-700"
-                title="Delete Goal"
-              >
-                <FaTrash size={18} />
-              </button>
+              <div className="flex gap-2">
+  <button
+    onClick={() => {
+    setEditingGoal(goal);
+    setShowForm(true);
+}}
+    className="rounded-lg p-3 text-blue-600 transition hover:bg-blue-50 hover:text-blue-700"
+    title="Edit Goal"
+  >
+    <FaEdit size={18} />
+  </button>
+
+  <button
+    onClick={() => deleteGoal(goal.id)}
+    className="rounded-lg p-3 text-red-500 transition hover:bg-red-50 hover:text-red-700"
+    title="Delete Goal"
+  >
+    <FaTrash size={18} />
+  </button>
+</div>
             </div>
-          ))
+
+{editingGoal?.id === goal.id && (
+  <div className="mt-4 rounded-xl border bg-gray-50 p-4">
+    <AddGoalForm
+      editingGoal={editingGoal}
+      onAddGoal={addGoal}
+      onUpdateGoal={updateGoal}
+      onCancel={() => setEditingGoal(null)}
+    />
+  </div>
+)}
+
+</div>
+))
         )}
       </div>
     </div>

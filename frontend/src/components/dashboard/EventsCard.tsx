@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { FaCalendarAlt, FaPlus, FaTrash } from "react-icons/fa";
+import { useEffect, useRef, useState } from "react";
+import { FaCalendarAlt, FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import { useCalendar } from "../../context/CalendarContext";
 import api from "../../services/api";
+
 
 interface Event {
   id: number;
@@ -26,6 +27,8 @@ export default function EventsCard({
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
   async function addEvent() {
     if (!title.trim() || !date) return;
@@ -39,14 +42,36 @@ export default function EventsCard({
 
       await refreshData();
 
-      setTitle("");
-      setDate("");
-      setTime("");
-      setShowForm(false);
+     setTitle("");
+setDate("");
+setTime("");
+setEditingEvent(null);
+setShowForm(false);
     } catch (error) {
       console.error("Failed to create event:", error);
     }
   }
+  async function updateEvent() {
+  if (!editingEvent) return;
+
+  try {
+    await api.put(`/events/${editingEvent.id}`, {
+      title,
+      date,
+      time: time || "All Day",
+    });
+
+    await refreshData();
+
+    setTitle("");
+    setDate("");
+    setTime("");
+    setEditingEvent(null);
+    setShowForm(false);
+  } catch (error) {
+    console.error("Failed to update event:", error);
+  }
+}
 
   async function deleteEvent(id: number) {
     try {
@@ -57,6 +82,25 @@ export default function EventsCard({
       console.error("Failed to delete event:", error);
     }
   }
+  useEffect(() => {
+  function handleClickOutside(event: MouseEvent) {
+    if (
+      formRef.current &&
+      !formRef.current.contains(event.target as Node)
+    ) {
+      setTitle("");
+      setDate("");
+      setTime("");
+      setShowForm(false);
+    }
+  }
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
 
   const filteredEvents = events.filter(
     (event) => event.date === selectedDate
@@ -79,7 +123,10 @@ export default function EventsCard({
       </div>
 
       {showForm && (
-        <div className="mb-6 rounded-xl border border-gray-200 p-4">
+        <div
+  ref={formRef}
+  className="mb-6 rounded-xl border border-gray-200 p-4"
+>
           <input
             type="text"
             placeholder="Event Title"
@@ -102,12 +149,27 @@ export default function EventsCard({
             className="mb-3 w-full rounded-lg border p-2"
           />
 
-          <button
-            onClick={addEvent}
-            className="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white hover:bg-blue-700"
-          >
-            Add Event
-          </button>
+         <div className="flex gap-3">
+  <button
+  onClick={editingEvent ? updateEvent : addEvent}
+  className="flex-1 rounded-lg bg-blue-600 py-2 font-semibold text-white hover:bg-blue-700"
+>
+  {editingEvent ? "Update Event" : "Add Event"}
+</button>
+
+  <button
+  onClick={() => {
+  setTitle("");
+  setDate("");
+  setTime("");
+  setEditingEvent(null);
+  setShowForm(false);
+}}
+    className="rounded-lg border border-gray-300 px-5 py-2 hover:bg-gray-100"
+  >
+    Cancel
+  </button>
+</div>
         </div>
       )}
 
@@ -132,12 +194,29 @@ export default function EventsCard({
                 <p className="text-sm text-blue-600">{event.time}</p>
               </div>
 
-              <button
-                onClick={() => deleteEvent(event.id)}
-                className="text-red-500 hover:text-red-700"
-              >
-                <FaTrash />
-              </button>
+              <div className="flex gap-3">
+  <button
+    onClick={() => {
+      setEditingEvent(event);
+      setTitle(event.title);
+      setDate(event.date);
+      setTime(event.time === "All Day" ? "" : event.time);
+      setShowForm(true);
+    }}
+    className="text-blue-600 hover:text-blue-800"
+    title="Edit Event"
+  >
+    <FaEdit />
+  </button>
+
+  <button
+    onClick={() => deleteEvent(event.id)}
+    className="text-red-500 hover:text-red-700"
+    title="Delete Event"
+  >
+    <FaTrash />
+  </button>
+</div>
             </div>
           ))
         )}
