@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FaCalendarAlt, FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import { useCalendar } from "../../context/CalendarContext";
 import api from "../../services/api";
+import ConfirmDialog from "../ui/ConfirmDialog";
 
 
 interface Event {
@@ -28,6 +29,7 @@ export default function EventsCard({
   const [time, setTime] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
   async function addEvent() {
@@ -210,7 +212,7 @@ setShowForm(false);
   </button>
 
   <button
-    onClick={() => deleteEvent(event.id)}
+    onClick={() => setEventToDelete(event)}
     className="text-red-500 hover:text-red-700"
     title="Delete Event"
   >
@@ -220,7 +222,20 @@ setShowForm(false);
             </div>
           ))
         )}
-      </div>
+           </div>
+
+      <ConfirmDialog
+        isOpen={eventToDelete !== null}
+        title="Delete Event"
+        message={`Are you sure you want to delete "${eventToDelete?.title}"?`}
+        onCancel={() => setEventToDelete(null)}
+        onConfirm={async () => {
+          if (!eventToDelete) return;
+
+          await deleteEvent(eventToDelete.id);
+          setEventToDelete(null);
+        }}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import AddGoalForm from "./AddGoalForm";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import api from "../../services/api";
+import ConfirmDialog from "../ui/ConfirmDialog";
 
 interface Goal {
   id: number;
@@ -24,6 +25,7 @@ export default function GoalList({
 }: GoalListProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
 
   async function addGoal(goal: {
     title: string;
@@ -171,7 +173,7 @@ export default function GoalList({
   </button>
 
   <button
-    onClick={() => deleteGoal(goal.id)}
+    onClick={() => setGoalToDelete(goal)}
     className="rounded-lg p-3 text-red-500 transition hover:bg-red-50 hover:text-red-700"
     title="Delete Goal"
   >
@@ -195,6 +197,19 @@ export default function GoalList({
 ))
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={goalToDelete !== null}
+        title="Delete Goal"
+        message={`Are you sure you want to delete "${goalToDelete?.title}"?`}
+        onCancel={() => setGoalToDelete(null)}
+        onConfirm={async () => {
+          if (!goalToDelete) return;
+
+          await deleteGoal(goalToDelete.id);
+          setGoalToDelete(null);
+        }}
+      />
     </div>
   );
 }
