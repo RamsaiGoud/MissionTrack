@@ -29,6 +29,7 @@ export default function EventsCard({
   const [time, setTime] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -105,8 +106,10 @@ setShowForm(false);
 }, []);
 
   const filteredEvents = events.filter(
-    (event) => event.date === selectedDate
-  );
+  (event) =>
+    event.date === selectedDate &&
+    event.title.toLowerCase().includes(searchTerm.toLowerCase())
+);
 
   return (
     <div className="rounded-3xl bg-white p-6 shadow-md">
@@ -178,7 +181,13 @@ setShowForm(false);
       <div className="mb-4 rounded-lg bg-blue-50 p-3 text-center text-sm font-medium text-blue-700">
         Selected Date: {selectedDate}
       </div>
-
+      <input
+  type="text"
+  placeholder="🔍 Search events..."
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  className="mb-4 w-full rounded-xl border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
+/>
       <div className="space-y-3">
         {filteredEvents.length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-gray-500">

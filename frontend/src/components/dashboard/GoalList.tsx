@@ -25,6 +25,7 @@ export default function GoalList({
 }: GoalListProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
 
   async function addGoal(goal: {
@@ -84,6 +85,9 @@ export default function GoalList({
     console.error("Error updating goal:", error);
   }
 }
+const filteredGoals = goals.filter((goal) =>
+  goal.title.toLowerCase().includes(searchTerm.toLowerCase())
+);
 
   return (
     <div className="space-y-6">
@@ -111,14 +115,20 @@ export default function GoalList({
     />
   </div>
 )}
-     
+<input
+  type="text"
+  placeholder="🔍 Search goals..."
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  className="w-full rounded-xl border border-gray-300 p-3 focus:border-blue-500 focus:outline-none"
+/>    
       <div className="space-y-4">
-        {goals.length === 0 ? (
+        {filteredGoals.length === 0 ? (
           <div className="rounded-xl border bg-white p-8 text-center text-gray-500 shadow-sm">
             No goals found.
           </div>
         ) : (
-          goals.map((goal) => (
+         filteredGoals.map((goal) => (
   <div key={goal.id}>
     <div
       className="flex items-center justify-between rounded-xl border bg-white p-5 shadow-sm transition hover:shadow-md"
