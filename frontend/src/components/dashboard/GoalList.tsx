@@ -2,6 +2,7 @@ import { useState } from "react";
 import AddGoalForm from "./AddGoalForm";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import api from "../../services/api";
+import toast from "react-hot-toast";
 import ConfirmDialog from "../ui/ConfirmDialog";
 
 interface Goal {
@@ -41,7 +42,8 @@ export default function GoalList({
       });
 
       await refreshData();
-      setShowForm(false);
+toast.success("Goal added successfully!");
+setShowForm(false);
     } catch (error) {
       console.error("Error adding goal:", error);
     }
@@ -56,6 +58,7 @@ export default function GoalList({
     });
 
     await refreshData();
+toast.success("Goal updated successfully!");
     setEditingGoal(null);
     setShowForm(false);
   } catch (error) {
@@ -66,6 +69,7 @@ export default function GoalList({
     try {
       await api.delete(`/goals/${id}`);
       await refreshData();
+toast.success("Goal deleted successfully!");
     } catch (error) {
       console.error("Error deleting goal:", error);
     }
@@ -81,9 +85,16 @@ export default function GoalList({
     });
 
     await refreshData();
+
+toast.success(
+  !goal.completed
+    ? "Goal completed! 🎉"
+    : "Goal marked as pending."
+);
   } catch (error) {
-    console.error("Error updating goal:", error);
-  }
+  toast.error("Something went wrong!");
+  console.error(error);
+}
 }
 const filteredGoals = goals.filter((goal) =>
   goal.title.toLowerCase().includes(searchTerm.toLowerCase())

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 interface Goal {
   id: number;
@@ -30,9 +31,10 @@ export default function AddGoalForm({
 }: AddGoalFormProps) {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<
-    "High" | "Medium" | "Low"
-  >("Medium");
+  "High" | "Medium" | "Low"
+>("Medium");
   const [dueDate, setDueDate] = useState("");
+
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,25 +48,32 @@ export default function AddGoalForm({
       setDueDate("");
     }
   }, [editingGoal]);
+
   useEffect(() => {
-  function handleClickOutside(event: MouseEvent) {
-    if (
-      formRef.current &&
-      !formRef.current.contains(event.target as Node)
-    ) {
-      onCancel();
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        formRef.current &&
+        !formRef.current.contains(event.target as Node)
+      ) {
+        onCancel();
+      }
     }
-  }
 
-  document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
 
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, [onCancel]);
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, [onCancel]);
 
   function handleSubmit() {
-    if (!title.trim()) return;
+    if (!title.trim()) {
+      toast.error("Goal title is required!");
+      return;
+    }
 
     if (editingGoal) {
       onUpdateGoal({
@@ -87,10 +96,10 @@ export default function AddGoalForm({
   }
 
   return (
-   <div
-  ref={formRef}
-  className="rounded-3xl bg-white p-6 shadow-md"
->
+    <div
+      ref={formRef}
+      className="rounded-3xl bg-white p-6 shadow-md"
+    >
       <h2 className="text-xl font-bold">
         {editingGoal ? "Edit Goal" : "Add Goal"}
       </h2>
@@ -133,13 +142,12 @@ export default function AddGoalForm({
         </button>
 
         <button
-  type="button"
-  onClick={onCancel}
-  className="rounded-xl border border-gray-300 px-6 py-3 hover:bg-gray-100"
->
-  Cancel
-</button>
-        
+          type="button"
+          onClick={onCancel}
+          className="rounded-xl border border-gray-300 px-6 py-3 hover:bg-gray-100"
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );
