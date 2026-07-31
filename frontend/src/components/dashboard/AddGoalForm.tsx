@@ -9,7 +9,8 @@ interface Goal {
   completed: boolean;
 }
 
-interface AddGoalFormProps {
+
+ interface AddGoalFormProps {
   editingGoal: Goal | null;
 
   onAddGoal: (goal: {
@@ -21,6 +22,8 @@ interface AddGoalFormProps {
   onUpdateGoal: (goal: Goal) => void;
 
   onCancel: () => void;
+
+  isSaving: boolean;
 }
 
 export default function AddGoalForm({
@@ -28,6 +31,7 @@ export default function AddGoalForm({
   onAddGoal,
   onUpdateGoal,
   onCancel,
+  isSaving,
 }: AddGoalFormProps) {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<
@@ -134,21 +138,26 @@ export default function AddGoalForm({
       />
 
       <div className="mt-6 flex gap-3">
-        <button
-          onClick={handleSubmit}
-          className="flex-1 rounded-xl bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700"
-        >
-          {editingGoal ? "Update Goal" : "Add Goal"}
-        </button>
+  <button
+    onClick={handleSubmit}
+    disabled={isSaving}
+    className="flex-1 rounded-xl bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+  >
+    {isSaving
+      ? "Saving..."
+      : editingGoal
+      ? "Update Goal"
+      : "Add Goal"}
+  </button>
 
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-xl border border-gray-300 px-6 py-3 hover:bg-gray-100"
-        >
-          Cancel
-        </button>
-      </div>
+  <button
+    type="button"
+    onClick={onCancel}
+    className="rounded-xl border border-gray-300 px-6 py-3 hover:bg-gray-100"
+  >
+    Cancel
+  </button>
+</div>
     </div>
   );
 }

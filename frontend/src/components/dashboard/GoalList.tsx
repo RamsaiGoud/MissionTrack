@@ -26,6 +26,8 @@ export default function GoalList({
 }: GoalListProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
 
@@ -35,21 +37,29 @@ export default function GoalList({
     dueDate: string;
   }) {
     try {
-      await api.post("/goals/", {
-        title: goal.title,
-        priority: goal.priority,
-        due_date: goal.dueDate,
-      });
+  setIsSaving(true);
 
-      await refreshData();
-toast.success("Goal added successfully!");
-setShowForm(false);
-    } catch (error) {
-      console.error("Error adding goal:", error);
-    }
-  }
+  await api.post("/goals/", {
+    title: goal.title,
+    priority: goal.priority,
+    due_date: goal.dueDate,
+  });
+
+  await refreshData();
+  toast.success("Goal added successfully!");
+  setShowForm(false);
+
+  setIsSaving(false);
+} catch (error) {
+  setIsSaving(false);
+  toast.error("Something went wrong!");
+  console.error("Error adding goal:", error);
+}
+}
   async function updateGoal(goal: Goal) {
   try {
+    setIsSaving(true);
+
     await api.put(`/goals/${goal.id}`, {
       title: goal.title,
       priority: goal.priority,
@@ -58,22 +68,40 @@ setShowForm(false);
     });
 
     await refreshData();
-toast.success("Goal updated successfully!");
+
+    toast.success("Goal updated successfully!");
+
     setEditingGoal(null);
     setShowForm(false);
+
+    setIsSaving(false);
   } catch (error) {
+    setIsSaving(false);
+
+    toast.error("Something went wrong!");
+
     console.error("Error updating goal:", error);
   }
 }
   async function deleteGoal(id: number) {
-    try {
-      await api.delete(`/goals/${id}`);
-      await refreshData();
-toast.success("Goal deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting goal:", error);
-    }
+  try {
+    setIsDeleting(id);
+
+    await api.delete(`/goals/${id}`);
+
+    await refreshData();
+
+    toast.success("Goal deleted successfully!");
+
+    setIsDeleting(null);
+  } catch (error) {
+    setIsDeleting(null);
+
+    toast.error("Something went wrong!");
+
+    console.error("Error deleting goal:", error);
   }
+}
 
  async function toggleGoal(goal: Goal) {
   try {
@@ -119,11 +147,12 @@ const filteredGoals = goals.filter((goal) =>
 {showForm && editingGoal === null && (
   <div className="rounded-xl border bg-gray-50 p-4">
     <AddGoalForm
-      editingGoal={null}
-      onAddGoal={addGoal}
-      onUpdateGoal={updateGoal}
-      onCancel={() => setShowForm(false)}
-    />
+  editingGoal={editingGoal}
+  onAddGoal={addGoal}
+  onUpdateGoal={updateGoal}
+  onCancel={() => setEditingGoal(null)}
+  isSaving={isSaving}
+/>
   </div>
 )}
 <input
@@ -198,7 +227,7 @@ const filteredGoals = goals.filter((goal) =>
     className="rounded-lg p-3 text-red-500 transition hover:bg-red-50 hover:text-red-700"
     title="Delete Goal"
   >
-    <FaTrash size={18} />
+    {isDeleting === goal.id ? "..." : <FaTrash size={18} />}
   </button>
 </div>
             </div>
