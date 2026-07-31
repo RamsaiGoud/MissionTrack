@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import AnalyticsChart from "../components/dashboard/AnalyticsChart";
 
 import Sidebar from "../components/layout/Sidebar";
 import Navbar from "../components/layout/Navbar";
@@ -20,6 +21,7 @@ interface Goal {
   priority: "High" | "Medium" | "Low";
   dueDate: string;
   completed: boolean;
+  completed_at: string | null;
 }
 
 interface Event {
@@ -37,13 +39,14 @@ export default function Dashboard() {
     try {
       const res = await api.get("/goals/");
 
-      const formattedGoals: Goal[] = res.data.map((goal: any) => ({
-        id: goal.id,
-        title: goal.title,
-        priority: goal.priority,
-        dueDate: goal.due_date,
-        completed: goal.completed,
-      }));
+    const formattedGoals: Goal[] = res.data.map((goal: any) => ({
+  id: goal.id,
+  title: goal.title,
+  priority: goal.priority,
+  dueDate: goal.due_date,
+  completed: goal.completed,
+  completed_at: goal.completed_at,
+}));
 
       setGoals(formattedGoals);
     } catch (error) {
@@ -84,11 +87,18 @@ export default function Dashboard() {
         </div>
 
         <div className="mt-8">
-          <TodaysMission />
-        </div>
+  <TodaysMission />
+</div>
 
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+<div className="mt-8">
+  <AnalyticsChart
+    goals={goals}
+    events={events}
+  />
+</div>
+
+<div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
+          <div className="xl:col-span-2">
             <GoalList
               goals={goals}
               refreshGoals={fetchGoals}

@@ -103,8 +103,8 @@ export default function CalendarCard() {
 
       {/* Week Days */}
       <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-gray-500">
-        {weekDays.map((day) => (
-          <div key={day}>{day}</div>
+        {weekDays.map((day, index) => (
+          <div key={`${day}-${index}`}>{day}</div>
         ))}
       </div>
 

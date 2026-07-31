@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel
 
 
@@ -20,6 +21,7 @@ class GoalResponse(BaseModel):
     priority: str
     due_date: str
     completed: bool
+    completed_at: datetime | None
 
     class Config:
         from_attributes = True

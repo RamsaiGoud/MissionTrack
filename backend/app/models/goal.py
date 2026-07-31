@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy import Boolean, Column, Integer, String, DateTime
+from datetime import datetime
 
 from app.database.database import Base
 
@@ -11,3 +12,4 @@ class Goal(Base):
     priority = Column(String)
     due_date = Column(String)
     completed = Column(Boolean, default=False)
+    completed_at = Column(DateTime, nullable=True)

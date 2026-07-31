@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -42,6 +44,14 @@ def update_goal(goal_id: int, goal_update: GoalUpdate, db: Session = Depends(get
     goal.title = goal_update.title
     goal.priority = goal_update.priority
     goal.due_date = goal_update.due_date
+
+    # Save completion timestamp
+    if goal_update.completed:
+        if not goal.completed:
+            goal.completed_at = datetime.utcnow()
+    else:
+        goal.completed_at = None
+
     goal.completed = goal_update.completed
 
     db.commit()

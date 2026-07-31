@@ -112,7 +112,7 @@ setShowForm(false);
 );
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-md">
+    <div className="rounded-3xl bg-white p-4 shadow-md sm:p-6">
       <div className="mb-5 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-xl font-bold">
           <FaCalendarAlt />
