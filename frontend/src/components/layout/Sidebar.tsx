@@ -7,6 +7,8 @@ import {
   FaCog,
   FaChevronRight,
 } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import api from "../../services/api";
 
 const menuItems = [
   { name: "Dashboard", icon: <FaHome /> },
@@ -18,6 +20,22 @@ const menuItems = [
 ];
 
 export default function Sidebar() {
+  const [streak, setStreak] = useState(0);
+const [longestStreak, setLongestStreak] = useState(0);
+
+useEffect(() => {
+  async function fetchStreak() {
+    try {
+      const res = await api.get("/analytics/streak");
+      setStreak(res.data.current_streak);
+      setLongestStreak(res.data.longest_streak);
+    } catch (error) {
+      console.error("Error fetching streak:", error);
+    }
+  }
+
+  fetchStreak();
+}, []);
   return (
     <aside className="flex h-screen w-72 flex-col justify-between border-r border-gray-200 bg-white shadow-sm">
 
@@ -87,16 +105,22 @@ export default function Sidebar() {
           </p>
 
           <h2 className="mt-3 text-5xl font-black">
-            18
+            {streak}
           </h2>
 
-          <p className="mt-2 text-sm opacity-90">
-            You're building consistency.
-          </p>
+         <p className="mt-2 text-sm opacity-90">
+  🏆 Best: {longestStreak}{" "}
+  {longestStreak === 1 ? "day" : "days"}
+</p>
 
           <div className="mt-5 h-2 rounded-full bg-blue-400">
 
-            <div className="h-2 w-4/5 rounded-full bg-white" />
+            <div
+  className="h-2 rounded-full bg-white transition-all duration-500"
+  style={{
+    width: `${Math.min(streak * 10, 100)}%`,
+  }}
+/>
 
           </div>
 

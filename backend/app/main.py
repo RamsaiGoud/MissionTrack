@@ -9,6 +9,7 @@ from app.database.database import Base, engine
 # Import models so SQLAlchemy creates the tables
 from app.models.goal import Goal
 from app.models.event import Event
+from app.api.analytics_routes import router as analytics_router
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -30,7 +31,7 @@ app.add_middleware(
 # Register API routes
 app.include_router(goal_router)
 app.include_router(event_router)
-
+app.include_router(analytics_router)
 
 @app.get("/")
 def root():
