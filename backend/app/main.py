@@ -1,14 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.api.auth_routes import router as auth_router
 
 from app.api.goal_routes import router as goal_router
 from app.api.event_routes import router as event_router
 
 from app.database.database import Base, engine
+from app.api.achievement_routes import router as achievement_router
 
 # Import models so SQLAlchemy creates the tables
 from app.models.goal import Goal
 from app.models.event import Event
+from app.models.user import User
 from app.api.analytics_routes import router as analytics_router
 
 # Create database tables
@@ -32,7 +35,8 @@ app.add_middleware(
 app.include_router(goal_router)
 app.include_router(event_router)
 app.include_router(analytics_router)
-
+app.include_router(achievement_router)
+app.include_router(auth_router)
 @app.get("/")
 def root():
     return {

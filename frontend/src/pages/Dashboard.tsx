@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import AnalyticsChart from "../components/dashboard/AnalyticsChart";
+import AchievementCard from "../components/dashboard/AchievementCard";
 
 import Sidebar from "../components/layout/Sidebar";
 import Navbar from "../components/layout/Navbar";
@@ -118,8 +119,12 @@ export default function Dashboard() {
         </div>
 
         <div className="mt-8">
-          <QuoteCard />
-        </div>
+  <QuoteCard />
+</div>
+
+<div className="mt-8">
+  <AchievementCard />
+</div>
 
         <FloatingActionButton />
       </main>

@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
+from app.dependencies.auth import get_current_user
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
@@ -14,18 +15,29 @@ router = APIRouter(
 
 
 @router.get("/", response_model=list[GoalResponse])
-def get_goals(db: Session = Depends(get_db)):
-    return db.query(Goal).all()
-
+def get_goals(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    return (
+        db.query(Goal)
+        .filter(Goal.user_id == current_user.id)
+        .all()
+    )
 
 @router.post("/", response_model=GoalResponse)
-def create_goal(goal: GoalCreate, db: Session = Depends(get_db)):
+def create_goal(
+    goal: GoalCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
     new_goal = Goal(
-        title=goal.title,
-        priority=goal.priority,
-        due_date=goal.due_date,
-        completed=False
-    )
+    title=goal.title,
+    priority=goal.priority,
+    due_date=goal.due_date,
+    completed=False,
+    user_id=current_user.id,
+)
 
     db.add(new_goal)
     db.commit()
@@ -35,17 +47,31 @@ def create_goal(goal: GoalCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{goal_id}", response_model=GoalResponse)
-def update_goal(goal_id: int, goal_update: GoalUpdate, db: Session = Depends(get_db)):
-    goal = db.query(Goal).filter(Goal.id == goal_id).first()
+def update_goal(
+    goal_id: int,
+    goal_update: GoalUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    goal = (
+        db.query(Goal)
+        .filter(
+            Goal.id == goal_id,
+            Goal.user_id == current_user.id,
+        )
+        .first()
+    )
 
     if goal is None:
-        raise HTTPException(status_code=404, detail="Goal not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Goal not found",
+        )
 
     goal.title = goal_update.title
     goal.priority = goal_update.priority
     goal.due_date = goal_update.due_date
 
-    # Save completion timestamp
     if goal_update.completed:
         if not goal.completed:
             goal.completed_at = datetime.utcnow()
@@ -60,8 +86,19 @@ def update_goal(goal_id: int, goal_update: GoalUpdate, db: Session = Depends(get
     return goal
 
 @router.delete("/{goal_id}")
-def delete_goal(goal_id: int, db: Session = Depends(get_db)):
-    goal = db.query(Goal).filter(Goal.id == goal_id).first()
+def delete_goal(
+    goal_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    goal = (
+    db.query(Goal)
+    .filter(
+        Goal.id == goal_id,
+        Goal.user_id == current_user.id,
+    )
+    .first()
+)
 
     if goal is None:
         raise HTTPException(status_code=404, detail="Goal not found")

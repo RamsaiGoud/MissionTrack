@@ -5,12 +5,16 @@ from sqlalchemy.orm import Session
 from app.models.goal import Goal
 
 
-def calculate_streaks(db: Session):
+def calculate_streaks(
+    db: Session,
+    current_user,
+):
     completed_goals = (
         db.query(Goal)
         .filter(
+            Goal.user_id == current_user.id,
             Goal.completed == True,
-            Goal.completed_at != None
+            Goal.completed_at != None,
         )
         .all()
     )

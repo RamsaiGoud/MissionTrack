@@ -1,8 +1,39 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FcGoogle } from "react-icons/fc";
 import { FaPhone } from "react-icons/fa";
+import api from "../services/api";
 
 export default function Login() {
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  async function handleLogin() {
+    try {
+      const response = await api.post("/auth/login", {
+        email,
+        password,
+      });
+
+      localStorage.setItem(
+        "token",
+        response.data.access_token
+      );
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(response.data.user)
+      );
+
+      navigate("/dashboard");
+    } catch (err) {
+      alert("Invalid email or password");
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-white px-6">
       <motion.div
@@ -11,7 +42,7 @@ export default function Login() {
         transition={{ duration: 0.6 }}
         className="w-full max-w-md"
       >
-        <h1 className="text-center text-5xl font-black text-gray-900">
+        <h1 className="text-center text-5xl font-black">
           MissionTrack
         </h1>
 
@@ -19,12 +50,12 @@ export default function Login() {
           Track. Improve. Achieve.
         </p>
 
-        <button className="mt-12 flex w-full items-center justify-center gap-3 rounded-xl border border-gray-300 py-4 font-bold transition hover:scale-[1.02] hover:shadow-lg">
+        <button className="mt-12 flex w-full items-center justify-center gap-3 rounded-xl border py-4">
           <FcGoogle size={24} />
           Continue with Google
         </button>
 
-        <button className="mt-4 flex w-full items-center justify-center gap-3 rounded-xl border border-gray-300 py-4 font-bold transition hover:scale-[1.02] hover:shadow-lg">
+        <button className="mt-4 flex w-full items-center justify-center gap-3 rounded-xl border py-4">
           <FaPhone />
           Continue with Phone Number
         </button>
@@ -34,24 +65,33 @@ export default function Login() {
         </div>
 
         <input
-          type="text"
-          placeholder="Achiever Name"
-          className="mb-4 w-full rounded-xl border border-gray-300 p-4 font-medium outline-none transition focus:border-blue-500"
+          type="email"
+          placeholder="Email"
+          className="mb-4 w-full rounded-xl border p-4"
+          value={email}
+          onChange={(e) =>
+            setEmail(e.target.value)
+          }
         />
 
         <input
           type="password"
           placeholder="Password"
-          className="w-full rounded-xl border border-gray-300 p-4 font-medium outline-none transition focus:border-blue-500"
+          className="w-full rounded-xl border p-4"
+          value={password}
+          onChange={(e) =>
+            setPassword(e.target.value)
+          }
         />
 
-        <div className="mt-3 text-right">
-          <button className="text-sm font-semibold text-blue-600">
-            Forgot Password?
-          </button>
-        </div>
+        <button className="mt-3 text-blue-600">
+          Forgot Password?
+        </button>
 
-        <button className="mt-8 w-full rounded-xl bg-blue-600 py-4 text-lg font-bold text-white transition hover:scale-[1.02] hover:bg-blue-700">
+        <button
+          onClick={handleLogin}
+          className="mt-8 w-full rounded-xl bg-blue-600 py-4 font-bold text-white"
+        >
           Sign In
         </button>
       </motion.div>
